@@ -8692,7 +8692,7 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
  ; Insert here your data definition.
 Counter     DS.W 1
 FiboRes     DS.W 1
-str         fcc "abc .!" 
+str         fcc "a.!" 
 
 function_on ds 1
 ;isletter:   ds $3000
@@ -8740,36 +8740,52 @@ mainLoop:
             bra mainLoop
 
 
-charloop:          
-            ldaa 1,+x
+charloop:  
+            ;load current letter into the accumulator        
+            ldaa 1,x+
+            staa $1500
+            ldy $1500
             
-            ;perform operations      
+            ;perform operations 
+            ;check the current chacter is a letter      
             bsr checklet
-action:           
+action:  
+            ;if a space or full stop is found, zero flag is raised
+            
+            
+            ;terminate or continue string loop       
             ;compare with fixed value
+
+skipaction:
+            ldaa $1500
             ldab $1600
             sba
             bne charloop 
             rts
 
 
+
+
+
             
  
 checklet:     ;65-90 97-122 but check for 32 and 46
               ;check full .
+              ldaa $1500
               ldab $1700
               sba
               staa $1900 
-              BEQ action
+              BEQ skipaction
               
               ;check white space
+              ldaa $1500
               ldab $1800
               sba 
               staa $2000
-              BEQ action
+              BEQ skipaction
               
-              ;return 
-              rts                  
+             ;return 
+             rts                  
          
             
            
