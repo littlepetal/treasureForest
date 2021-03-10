@@ -37,15 +37,48 @@ _Startup:
 
             CLI                     ; enable interrupts
 mainLoop:
-            LDX   #1              ; X contains counter
-sentance FCC "helloIamTom"  
+            ldx #1
+            ldx #1
             ldaa #1
             ldaa #1
             staa $1000            
             staa $1001
             ldab #0
             stab $1002
-            stab $1003
+            stab $1003 
+            clra
+            clrb 
+           
+            LDX   #$86 
+            stx   $1500            
+            
+            ldab #0
+            stab $2000
+             
+str         fcc "This is an error" 
+                
+            
+            
+               
+Charloop:              
+            ;load the current string value perform ops
+           ldy str+$2000
+           sty $2100 
+           ldaa $2100
+           
+           ;test if next character would be valid
+           inc $2000
+           ldx str+$2000
+           stx $2200
+           ldaa $2200
+           SBA
+           bne Charloop
+           
+
+ 
+          
+          
+           
             
             
 
