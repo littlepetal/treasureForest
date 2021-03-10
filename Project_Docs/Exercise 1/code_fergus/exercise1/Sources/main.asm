@@ -25,7 +25,10 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
  ; Insert here your data definition.
 Counter     DS.W 1
 FiboRes     DS.W 1
+str         fcc "abc .!" 
 
+function_on ds 1
+;isletter:   ds $3000
 
 ; code section
             ORG   ROMStart
@@ -37,8 +40,7 @@ _Startup:
 
             CLI                     ; enable interrupts
 mainLoop:
-            ldx #1
-            ldx #1
+
             ldaa #1
             ldaa #1
             staa $1000            
@@ -49,30 +51,61 @@ mainLoop:
             clra
             clrb 
            
-            LDX   #$86 
-            stx   $1500            
+           ;load breaking character
+            LDAA   #$21 
+            staa   $1600 ; breaking char
             
-            ldab #0
-            stab $2000
-             
-str         fcc "This is an error" 
-                
+            ;load full stop 
+            ldaa #32
+            staa $1700
             
+            ;load white space 
+            ldaa #46
+            staa $1800
             
-               
-Charloop:              
-            ;load the current string value perform ops
-           ldy str+$2000
-           sty $2100 
-           ldaa $2100
+            ;load str as index 
+            ldx #str           
            
-           ;test if next character would be valid
-           inc $2000
-           ldx str+$2000
-           stx $2200
-           ldaa $2200
-           SBA
-           bne Charloop
+            ;enter char loop
+            bsr charloop
+            clra
+            clrb 
+            bra mainLoop
+
+
+charloop:          
+            ldaa 1,+x
+            
+            ;perform operations      
+            bsr checklet
+action:           
+            ;compare with fixed value
+            ldab $1600
+            sba
+            bne charloop 
+            rts
+
+
+            
+ 
+checklet:     ;65-90 97-122 but check for 32 and 46
+              ;check full .
+              ldab $1700
+              sba
+              staa $1900 
+              BEQ action
+              
+              ;check white space
+              ldab $1800
+              sba 
+              staa $2000
+              BEQ action
+              
+              ;return 
+              rts                  
+         
+            
+           
            
 
  
