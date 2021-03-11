@@ -8692,7 +8692,7 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
  ; Insert here your data definition.
 Counter     DS.W 1
 FiboRes     DS.W 1
-str         fcc "a.!" 
+str         fcc "abcde!" 
 
 function_on ds 1
 ;isletter:   ds $3000
@@ -8706,6 +8706,10 @@ _Startup:
             LDS   #RAMEnd+1       ; initialize the stack pointer
 
             CLI                     ; enable interrupts
+
+
+
+;set initial conditions
 mainLoop:
 
             ldaa #1
@@ -8722,11 +8726,11 @@ mainLoop:
             LDAA   #$21 
             staa   $1600 ; breaking char
             
-            ;load full stop 
+            ;load ' ' 
             ldaa #32
             staa $1700
             
-            ;load white space 
+            ;load . 
             ldaa #46
             staa $1800
             
@@ -8738,25 +8742,39 @@ mainLoop:
             clra
             clrb 
             bra mainLoop
-
-
+            
+            
+;looping through each char
 charloop:  
             ;load current letter into the accumulator        
-            ldaa 1,x+
-            staa $1500
-            ldy $1500
+            ldaa x       
+            staa $1500 ;original value
+            staa $3500 ;modified value
+
             
             ;perform operations 
             ;check the current chacter is a letter      
             bsr checklet
 action:  
-            ;if a space or full stop is found, zero flag is raised
+            ;complete action on the char - given it is a letter
+            bsr checkupper
+            bsr convupper
+            
+            
+            
+
+            
             
             
             ;terminate or continue string loop       
             ;compare with fixed value
-
 skipaction:
+            ;restore this variable
+            ldaa $3500
+            staa x
+            inx
+            
+            ;return to end of loop
             ldaa $1500
             ldab $1600
             sba
@@ -8766,10 +8784,9 @@ skipaction:
 
 
 
-
             
- 
-checklet:     ;65-90 97-122 but check for 32 and 46
+;check if the char is a letter 
+checklet:     ;check for 32 and 46 binary
               ;check full .
               ldaa $1500
               ldab $1700
@@ -8787,12 +8804,43 @@ checklet:     ;65-90 97-122 but check for 32 and 46
              ;return 
              rts                  
          
-            
-           
+
+;check if the current char is upper or lower case            
+checkupper:
+             ;65-90 upper 97-122 lower
+             
+             ;compare current char to be upper or lower
+             ldaa $1500
+             ldab #95
+             sba
+             bge islower
+             ble isupper
+islower:      
+             ldaa #0
+             staa $3000
+             bra return
+isupper:
+             ldaa #1
+             staa $3000
+             bra return
+return:             
+             ;return to char actions
+             rts           
            
 
- 
-          
+;convert all  
+convupper:
+            ldaa $1500
+            ldab $3000
+            tstb
+            bgt skipupper
+            ldab #32
+            sba
+            staa $3500
+skipupper:  
+            rts
+            
+                     
           
            
             
