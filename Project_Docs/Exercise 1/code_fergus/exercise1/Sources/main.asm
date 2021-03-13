@@ -92,7 +92,7 @@ action:
             ;complete action on the char - given it is a letter
             bsr checkupper
             bsr convupper
-            
+ 
             
             
 
@@ -161,7 +161,7 @@ return:
              rts           
            
 
-;convert all  
+;convert all to upper
 convupper:
             ldaa $1500
             ldab $3000
@@ -173,7 +173,8 @@ convupper:
 skipupper:  
             rts
             
-                     
+
+                  
           
            
             
