@@ -8684,7 +8684,7 @@ mNVFSEC_KEYEN1:     equ    %10000000
 		
 
 	
-
+ 
 ROMStart    EQU  $4000  ; absolute address to place my code/constant data
 
 ; variable/data section
@@ -8708,22 +8708,56 @@ _Startup:
             LDS   #RAMEnd+1       ; initialize the stack pointer
 
             CLI                     ; enable interrupts
-mainLoop:
-
+            
             movb #156,SCI0BDL
             movb #$00,SCI0BDH
-            movb #$4C,SCI0CR1       ; 8 bits and address wake up
-            movb #$0C,SCI0CR2       ; enable transmitter and receiver
-            LDX   #str
-            ldaa  x
-            jsr   putcSCI0
-putcSCI0    brclr SCI0SR1,#128,* ; wait for TDRE to be set
-            staa SCI0DRL
-            rts  
+            movb #$4C,SCI0CR1 
+            movb #12,SCI0CR2 
+      
+mainLoop:
 
-getcSCI0    brclr SCI0SR1,#128,* ; wait until RDRF bit is set
-            ldab SCI0DRL ; read the character
-            rts
+     ; enable transmitter and receiver
+            LDX   #str
+            ldaa  #5
+            ;jsr   putcSCI0
+            ;jsr   getcSCI0
+            jsr putchar
+            jsr getchar       
+            
+putchar 
+            ldab SCI0SR1
+            ldaa #%10000000
+            sba
+            bne putchar
+            ldaa #9
+            staa SCI0DRL
+            rts 
+            
+getchar 
+            ldab SCI0SR1
+            ldaa #%00100000
+            sba
+            bne getchar
+            ldx SCI0DRL
+            rts 
+             
+             
+                 
+
+
+;putcSCI0    brclr SCI0SR1,SCI0SR1_TDRE,* ; wait for TDRE to be set
+ ;           staa SCI0DRL
+  ;          rts  
+
+;getcSCI0    brclr SCI0SR1,SCI0SR1_RDRF,* ; wait until RDRF bit is set
+;            ldab SCI0DRL ; read the character
+;            rts
+            
+;putsSCI0    ldaa 1,x+ ; get a character and move the pointer
+;            beq done ; is this the end of the string?
+;            jsr putcSCI0
+;            bra putsSCI0
+;done rts
              
             
             
