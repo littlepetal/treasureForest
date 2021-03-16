@@ -8699,6 +8699,7 @@ str         fcc "string"
 
 
 
+
 ; code section
             ORG   ROMStart
 
@@ -8708,56 +8709,62 @@ _Startup:
             LDS   #RAMEnd+1       ; initialize the stack pointer
 
             CLI                     ; enable interrupts
+             
             
-            movb #156,SCI0BDL
-            movb #$00,SCI0BDH
-            movb #$4C,SCI0CR1 
-            movb #12,SCI0CR2 
       
 mainLoop:
 
      ; enable transmitter and receiver
             LDX   #str
-            ldaa  #5
+            movb #156,SCI1BDL
+            movb #00,SCI1BDH
+            ;movb #$4C,SCI1CR1 
+            ;movb #%00011100,SCI1CR1
+            ;movb #%00000000,SCI1CR1 
+            
+            ldaa #100
             ;jsr   putcSCI0
-            ;jsr   getcSCI0
-            jsr putchar
-            jsr getchar       
             
-putchar 
-            ldab SCI0SR1
-            ldaa #%10000000
-            sba
-            bne putchar
-            ldaa #9
-            staa SCI0DRL
+            ;jsr   delay
+            jsr   getcSCI0
+            ;jsr putchar
+            ;jsr getchar
+            bra mainLoop       
+                            
+
+
+putcSCI0    
+            movb #%00001000,SCI1CR2
+            brclr SCI1SR1,#mSCI1SR1_TDRE,* 
+            movb #85,SCI1DRL
+            ldab SCI1DRL
+            stab $1500
             rts 
             
-getchar 
-            ldab SCI0SR1
-            ldaa #%00100000
-            sba
-            bne getchar
-            ldx SCI0DRL
-            rts 
-             
-             
-                 
 
 
-;putcSCI0    brclr SCI0SR1,SCI0SR1_TDRE,* ; wait for TDRE to be set
- ;           staa SCI0DRL
-  ;          rts  
-
-;getcSCI0    brclr SCI0SR1,SCI0SR1_RDRF,* ; wait until RDRF bit is set
-;            ldab SCI0DRL ; read the character
-;            rts
+delay          
             
-;putsSCI0    ldaa 1,x+ ; get a character and move the pointer
-;            beq done ; is this the end of the string?
-;            jsr putcSCI0
-;            bra putsSCI0
-;done rts
+            ldab #100
+inner       
+            decb
+            bne inner
+            
+            deca
+            bne delay
+            rts
+  
+            
+
+getcSCI0    
+            movb #%00000100,SCI1CR2
+            brclr SCI1SR1,#mSCI1SR1_RDRF,* 
+            ldab SCI1DRL
+            stab x
+            inx
+            rts
+            
+
              
             
             
