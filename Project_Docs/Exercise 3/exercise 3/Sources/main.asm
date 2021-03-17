@@ -28,7 +28,9 @@ Counter     DS.W 1
 FiboRes     DS.W 1
 str         fcc "string"
 cr          fcb  $0D
+test        fcc "testing"
 inpstr rmb  $300
+
 
 
 
@@ -47,38 +49,39 @@ _Startup:
              
             
       
-mainLoop:
+mainLoop:          
             movb #156,SCI1BDL
             movb #00,SCI1BDH
+            #$4C,SCI0CR1
+            movb #%00001100,SCI1CR2
             
-            ;inputting and storing the string
+start:      ;inputting and storing the string
+            movb #%00000100,SCI1CR2
             ldx #inpstr
             jsr getcSCI0
+            
             
             ;delaying the output
             ldab #100
             jsr   delay
            
             ;outputting a string at once per second
+            movb #%00001000,SCI1CR2
             LDX   #inpstr
-            jsr   putcSCI0
-       
+            jsr   putcSCI0     
          
-            
-         
-            bra mainLoop       
+            bra start       
                             
 
 
 putcSCI0    
-            movb #%00001000,SCI1CR2
             brclr SCI1SR1,#mSCI1SR1_TDRE,* 
-            movb x,SCI1DRL
+            movb x,SCI1DRL       
             ldab x
+            inx
             ldaa cr
             sba
-            beq return
-            inx
+            beq return     
             bra putcSCI0
 return
             rts 
@@ -95,16 +98,16 @@ inner_loop
             
 
 getcSCI0    
-            movb #%00000100,SCI1CR2
             brclr SCI1SR1,#mSCI1SR1_RDRF,* 
             ldab SCI1DRL
             stab x
+            inx
             ldaa cr
             sba
-            beq return2
-            inx
+            beq return2 
             bra getcSCI0
 return2
+
             rts 
             
 
