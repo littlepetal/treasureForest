@@ -58,7 +58,6 @@ start:      ;inputting and storing the string
             movb #%00000100,SCI1CR2
             ldx #inpstr
             jsr getcSCI0
-            inx
             ldab #$0D
             stab x
             
