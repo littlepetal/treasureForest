@@ -8694,7 +8694,6 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
 Counter     DS.W 1
 FiboRes     DS.W 1
 str         fcc "string"
-cr          fcb  $0D
 test        fcc "testing"
 inpstr rmb  $300
 
@@ -8716,15 +8715,19 @@ _Startup:
              
             
       
-mainLoop:          
+mainLoop:                      
             movb #156,SCI1BDL
             movb #00,SCI1BDH
             movb #%00001100,SCI1CR2
             
 start:      ;inputting and storing the string
+            ;movb #%00000000,SCI1CR2
             movb #%00000100,SCI1CR2
             ldx #inpstr
             jsr getcSCI0
+            inx
+            ldab #$0D
+            stab x
             
             
             ;delaying the output
@@ -8732,6 +8735,7 @@ start:      ;inputting and storing the string
             jsr   delay
            
             ;outputting a string at once per second
+            ;movb #%00000000,SCI1CR2
             movb #%00001000,SCI1CR2
             LDX   #inpstr
             jsr   putcSCI0     
@@ -8741,15 +8745,17 @@ start:      ;inputting and storing the string
 
 
 putcSCI0    
-            brclr SCI1SR1,#mSCI1SR1_TDRE,* 
-            movb x,SCI1DRL       
             ldab x
-            inx
-            ldaa cr
+            ldaa #$0D
             sba
-            beq return     
+            beq return
+            brclr SCI1SR1,#mSCI1SR1_TDRE,* 
+            movb x,SCI1DRL          
+            inx     
             bra putcSCI0
 return
+            brclr SCI1SR1,#mSCI1SR1_TDRE,* 
+            movb #$0D,SCI1DRL
             rts 
             
 
@@ -8766,14 +8772,13 @@ inner_loop
 getcSCI0    
             brclr SCI1SR1,#mSCI1SR1_RDRF,* 
             ldab SCI1DRL
-            stab x
-            inx
-            ldaa cr
+            ldaa #$0D
             sba
-            beq return2 
+            beq return2
+            stab x
+            inx 
             bra getcSCI0
 return2
-
             rts 
             
 
