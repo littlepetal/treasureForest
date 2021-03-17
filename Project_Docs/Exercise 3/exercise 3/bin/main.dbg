@@ -8695,7 +8695,7 @@ Counter     DS.W 1
 FiboRes     DS.W 1
 str         fcc "string"
 cr          fcb  $0D
-
+inpstr rmb  $300
 
 
 
@@ -8715,22 +8715,24 @@ _Startup:
             
       
 mainLoop:
-
-     ; enable transmitter and receiver
-            LDX   #str
             movb #156,SCI1BDL
             movb #00,SCI1BDH
-            ;movb #$4C,SCI1CR1 
-            ;movb #%00011100,SCI1CR1
-            ;movb #%00000000,SCI1CR1 
             
+            ;inputting and storing the string
+            ldx #inpstr
+            jsr getcSCI0
             
-            jsr   putcSCI0
+            ;delaying the output
             ldab #100
             jsr   delay
-            ;jsr   getcSCI0
-            ;jsr putchar
-            ;jsr getchar
+           
+            ;outputting a string at once per second
+            LDX   #inpstr
+            jsr   putcSCI0
+       
+         
+            
+         
             bra mainLoop       
                             
 
@@ -8764,8 +8766,13 @@ getcSCI0
             brclr SCI1SR1,#mSCI1SR1_RDRF,* 
             ldab SCI1DRL
             stab x
+            ldaa cr
+            sba
+            beq return2
             inx
-            rts
+            bra getcSCI0
+return2
+            rts 
             
 
              
