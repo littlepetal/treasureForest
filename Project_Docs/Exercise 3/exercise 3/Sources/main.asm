@@ -27,11 +27,12 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
 Counter     DS.W 1
 FiboRes     DS.W 1
 str         fcc "string"
-test        fcc "testing"
+            fcb $0d
+
 inpstr rmb  $300
 
 
-
+;brclr SCI1SR1,#mSCI1SR1_TC,*
 
 
 
@@ -49,47 +50,74 @@ _Startup:
             
       
 mainLoop:                      
-            movb #156,SCI1BDL
-            movb #00,SCI1BDH
-            movb #%00001100,SCI1CR2
+            ;movb #$00,SCI1BDH
+            ;movb #156,SCI1BDL  
+            ;movb #%00001100,SCI1CR2
             
-start:      ;inputting and storing the string
-            ;movb #%00000000,SCI1CR2
-            movb #%00000100,SCI1CR2
-            ldx #inpstr
-            jsr getcSCI0
-            ldab #$0D
-            stab x
-            
-            
+start:      
+            ;inputting and storing the string
+            jsr RE
+   
             ;delaying the output
             ldab #100
             jsr   delay
            
             ;outputting a string at once per second
-            ;movb #%00000000,SCI1CR2
-            movb #%00001000,SCI1CR2
-            LDX   #inpstr
-            jsr   putcSCI0     
+            jsr TE     
          
             bra start       
                             
+RE
 
+            movb #$00,SCI1BDH
+            movb #156,SCI1BDL
+            movb #%00000100,SCI1CR2
+            ldx #inpstr
+            ldy #$1500  
+getcSCI0  
+            
+            brclr SCI1SR1,#mSCI1SR1_RDRF,* 
+            
+            ldab SCI1DRL
+            ldaa #$0D
+            sba
+            beq return2
+            stab x
+            stab y
+            iny
+            inx 
+            bra getcSCI0
+return2
+            ldab #$0D
+            stab x
+            stab y
+            rts           
+            
+            
+
+
+
+TE
+            movb #$00,SCI1BDH
+            movb #156,SCI1BDL
+            movb #%00001000,SCI1CR2
+            LDX   #inpstr             
 
 putcSCI0    
+            brclr SCI1SR1,#mSCI1SR1_TDRE,*        
+            movb x,SCI1DRL
             ldab x
             ldaa #$0D
             sba
-            beq return
-            brclr SCI1SR1,#mSCI1SR1_TDRE,* 
-            movb x,SCI1DRL          
+            beq return                     
             inx     
             bra putcSCI0
 return
-            brclr SCI1SR1,#mSCI1SR1_TDRE,* 
-            movb #$0D,SCI1DRL
+            brclr SCI1SR1,#mSCI1SR1_TC,*
             rts 
             
+
+
 
 
 delay          
@@ -101,17 +129,7 @@ inner_loop
   
             
 
-getcSCI0    
-            brclr SCI1SR1,#mSCI1SR1_RDRF,* 
-            ldab SCI1DRL
-            ldaa #$0D
-            sba
-            beq return2
-            stab x
-            inx 
-            bra getcSCI0
-return2
-            rts 
+ 
             
 
              
