@@ -26,15 +26,11 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
  ; Insert here your data definition.
 Counter     DS.W 1
 FiboRes     DS.W 1
+
 str         fcc "string"
             fcb $0d
 
 inpstr rmb  $300
-
-
-;brclr SCI1SR1,#mSCI1SR1_TC,*
-
-
 
 
 ; code section
@@ -50,47 +46,43 @@ _Startup:
             
       
 mainLoop:                      
-            ;movb #$00,SCI1BDH
-            ;movb #156,SCI1BDL  
-            ;movb #%00001100,SCI1CR2
+            ;Set the baud rate at 9600
+            movb #$00,SCI1BDH
+            movb #156,SCI1BDL  
             
 start:      
-            ;inputting and storing the string
-            jsr RE
+            ;Sub-routine for inputting and storing the string
+            ;jsr RE
    
-            ;delaying the output
+            ;Sub-routine for delaying the output
             ldab #100
             jsr   delay
            
-            ;outputting a string at once per second
+            ;Sub-routine for outputting the string 
             jsr TE     
          
+            ;Always brnach to the start
             bra start       
                             
-RE
 
-            movb #$00,SCI1BDH
-            movb #156,SCI1BDL
-            movb #%00000100,SCI1CR2
-            ldx #inpstr
-            ldy #$1500  
-getcSCI0  
+
+
+RE
+            movb #%00000100,SCI1CR2 ;Enable receiving bit
+            ldx #inpstr ;load the address of the reserved memory  
+getc  
             
-            brclr SCI1SR1,#mSCI1SR1_RDRF,* 
-            
-            ldab SCI1DRL
+            brclr SCI1SR1,#mSCI1SR1_RDRF,*  ;Only branch when RDRF bit is 1          
+            ldab SCI1DRL ;Load data into reg b
             ldaa #$0D
             sba
-            beq return2
-            stab x
-            stab y
-            iny
+            beq return2  ;Return if carrage char
+            stab x       ;Else store data in reserved memory
             inx 
-            bra getcSCI0
+            bra getc     ;Continue for remaining char
 return2
-            ldab #$0D
+            ldab #$0D    ;Store carrage char in reserved memory
             stab x
-            stab y
             rts           
             
             
@@ -98,22 +90,20 @@ return2
 
 
 TE
-            movb #$00,SCI1BDH
-            movb #156,SCI1BDL
-            movb #%00001000,SCI1CR2
-            LDX   #inpstr             
+            movb #%00001000,SCI1CR2 ;Enable transmitting bit
+            LDX   #str              ;load the address of the reserved memory  
 
-putcSCI0    
-            brclr SCI1SR1,#mSCI1SR1_TDRE,*        
-            movb x,SCI1DRL
+putc    
+            brclr SCI1SR1,#mSCI1SR1_TDRE,* ;Only branch when TDRE bit is 1       
+            movb x,SCI1DRL                 ;Move char at reserved memory address to SCI1 data reg
             ldab x
             ldaa #$0D
             sba
-            beq return                     
+            beq return                    ;Return in Carrage char 
             inx     
-            bra putcSCI0
+            bra putc                      ; Else go to next Character
 return
-            brclr SCI1SR1,#mSCI1SR1_TC,*
+            brclr SCI1SR1,#mSCI1SR1_TC,*  ;Only return when transmission complete
             rts 
             
 
@@ -121,10 +111,12 @@ return
 
 
 delay          
-out_loop     ldx #60000 ;
+out_loop     
+             ldx #60000 ;1 cycle
 inner_loop 
-             dbne x,inner_loop
-             dbne b,out_loop
+             ldy $4000
+             dbne x,inner_loop  ;3 cycles
+             dbne b,out_loop    ;3 cycles
              rts 
   
             
