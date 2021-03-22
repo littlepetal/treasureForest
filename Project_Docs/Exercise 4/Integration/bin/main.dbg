@@ -8699,13 +8699,8 @@ str         fcc "string"
 
 inpstr rmb  $300
 
-
-
-output_string   DS.B  32     ; allocate 16 bytes at the address output_string
-input_string    FCC   "a #StrIng."  ; make a string in memory
 terminating_character  fcb $0d
-length_count    DS.B  1     ; one byte to store the string length
-function_code   DS.B  1     ; one byte to mark the required function
+function_code   DS.B  2     ; one byte to mark the required function
 
 
 
@@ -8738,6 +8733,8 @@ receive:
             
 ;char manipulation
             ldx #inpstr
+            ldaa #0
+            staa $4500
             jsr processstring
             
 transmit:           
@@ -8767,11 +8764,23 @@ validchar:
                    ;apply the required function
                    BRA applyRequiredFunction
 nextchar:         
+                   LDAB x
+                   TBA
+                   SUBA #32
+                   BNE skip
+spacechar:         ldaa #1
+                   staa $4500
+                   inx
+                   bra processstring            
+skip:       
+                   ldaa #0
+                   staa $4500  
                    inx
                    bra processstring                   
 
 terminate:        
                    rts
+                   
                
 
 ;supporting function
@@ -8783,54 +8792,77 @@ checkIfTerminate:
             
             
 checkIfAlpha:
+
             TBA
             SUBA #65                           ;check if ascii code is less than 65, if yes, move on to next char
             BLT  nextchar
             
             TBA
-            SUBA #122                          ;check if ascii code is greater than 65, if yes, move on to next char
-            BGE  nextchar
+            SUBA #90                           
+            BLT  validchar
             
-            ;else is a valid char;  
+            TBA
+            SUBA #97                           
+            BLT  nextchar
+            
+            TBA
+            SUBA #122                         
+            BGE  nextchar
+                          
             BRA validchar                        
             
 
-           
-           
+                     
 ;function setter                   
 applyRequiredFunction:             ;determines which function we are using
-            ;LDAA  function_code
-            ;DECA
-            ;BEQ   allToUpper
-            ;DECA  
-            ;BEQ   allToLower
-            ;DECA 
-            ;BEQ   properGrammar
+                       
+            LDAA  #1              ;0 for all caps, 1 for space to upper
+            LDAB  #0
+            sba
+            BGT Capspace
+            BEQ allToUpper
+;lower:              
+           ;bra   allToLower
+           
             
-            BRA allToUpper
-            ;BRA allToLower         
+                   
                         
 ;functions
 allToUpper:
+            ldab x
             TBA
             SUBA #90
-            BLE  storechar
-            
+            BLE  storechar           
             SUBB #32
 storechar:
             stab x                        
             BRA nextchar
             
+
 allToLower:
+            ldab x
             TBA
             SUBA #90
-            BGT  nextchar
-            
+            BGT  storechar2            
             ADDB #32
+storechar2:
+            stab x 
             BRA nextchar
             
-properGrammar:
-            BRA nextchar
+
+
+Capspace 
+           
+           ldaa x
+           ldab #1
+           subb $4500
+           BEQ allToUpper
+           BGT allToLower
+           
+            
+           
+           
+
                        
                       
 
