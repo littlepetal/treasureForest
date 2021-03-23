@@ -8703,7 +8703,9 @@ terminating_character  fcb $0d
 
 
 
-
+;############
+;main
+;############
 ; code section
             ORG   ROMStart
 
@@ -8737,12 +8739,14 @@ Charmanipulation:
             ldx #inpstr
             ldaa #1
             staa $4500
+            staa $4501
             jsr processstring
 
 Storenumeric: 
-            ;LDY #numbers
-            ;LDX #inpstr
-            ;jsr numbering          
+            LDY #numbers
+            LDX #inpstr
+            jsr numbering
+            jsr sevenseg          
 
             
 transmit:           
@@ -8753,25 +8757,7 @@ transmit:
             bra start  
             
             
-            
- ;###########
- ;exercise 4
- ;###########
- numbering:     
-            LDAA x
-            suba #$0d
-            BEQ terminating
-            ldaa x
-            SUBA #9
-            BGT next
-            ldaa x
-            staa y
-            iny
- next:
-            inx
-            bra numbering 
- terminating:           
-            rts  
+
                    
 
 ;############
@@ -8803,45 +8789,49 @@ keepProcessing:
                                 
             BRA validchar  
 validchar:
-             
-                                          
+            
+            ;need to come up with a way to do port h as input 
+            LDAA PTH 
+            staa $2000                             
             LDAA  #1              ;0 for all caps, 1 for space to upper
             LDAB  #0
             sba
-            BGT Capspace
-            BEQ allToUpper
+            ;BGT Capspace
+            ;BEQ allToUpper
             ;bra allToUpper        
            ;bra   allToLower
-           ;bra fullspace
-           
-           
+           bra fullspace
+                      
            
 ;test if spce char                   ;
 nextchar:   
 
+    fullstopcheck:
             LDAB x
             TBA
             SUBA #46
             BNE spacecheck
-            stx $4501
+            ldab #1
+            stab $4501
+            inx
+            bra processstring
                   
             
-spacecheck:
+    spacecheck:
             LDAB x
             TBA
             SUBA #32
-            BNE skip
-
-;if space char set flag to 1
-spacechar:  
+            BNE skip  
             ldaa #1
             staa $4500
             inx
             bra processstring
-;else skip                        
-skip:       
+    
+    ;else skip                        
+    skip:       
             ldaa #0
-            staa $4500  
+            staa $4500
+            staa $4501  
             inx
             bra processstring                   
 
@@ -8888,12 +8878,58 @@ Capspace
            
             
 fullspace
-           
-          stx $1502
-          ldy $1501 
+          ;capitalise the first letter
+          ldaa x
+          ldab #1
+          subb $4500
+          BGT allToLower
+          ldab #1
+          subb $4501 
+          BEQ allToUpper
+          BGT allToLower
+ 
+ 
+ ;delay
+delay          
+out_loop     
+             ldx #60000 ;1 cycle
+inner_loop 
+             ldy $4000
+             dbne x,inner_loop  ;3 cycles
+             dbne b,out_loop    ;3 cycles
+             rts            
+
+
+
+
+ ;###########
+ ;exercise 2
+ ;###########
+ numbering:     
+            LDAA x
+            suba #$0d
+            BEQ terminating
+            ldaa x
+            SUBA #48
+            BLE next
+            ldaa x
+            SUBA #57
+            BGT next
+            ldaa x  ;else it is a number
+            staa y
+            iny
+ next:
+            inx
+            bra numbering 
+ terminating:
+            LDAA #$0d
+            STAA y           
+            rts  
 
                        
-                      
+ sevenseg:
+           ;enter code here
+           rts                    
 
 
 ;##################
@@ -8915,7 +8951,7 @@ getc
             inx 
             bra getc     ;Continue for remaining char
 return2
-            ldab #$0a    ;Store carrage char in reserved memory
+            ldab #$0a    ;Store newline char in reserved memory
             stab x
             inx
             ldab #$0D    ;Store carrage char in reserved memory
@@ -8942,15 +8978,7 @@ return
             
 
 
-;delay
-delay          
-out_loop     
-             ldx #60000 ;1 cycle
-inner_loop 
-             ldy $4000
-             dbne x,inner_loop  ;3 cycles
-             dbne b,out_loop    ;3 cycles
-             rts 
+
              
              
                      
