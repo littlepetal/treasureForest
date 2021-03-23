@@ -31,9 +31,9 @@ str         fcc "string"
             fcb $0d
 
 inpstr rmb  $300
-
+numbers rmb $100
 terminating_character  fcb $0d
-function_code   DS.B  2     ; one byte to mark the required function
+
 
 
 
@@ -51,8 +51,10 @@ _Startup:
       
 mainLoop:                      
             ;Set the baud rate at 9600
+            
             movb #$00,SCI1BDH
             movb #156,SCI1BDL  
+            movb #%00001100,SCI1CR2 ;Enable transmitting bit and receiving 
             
 start:      
             ;Sub-routine for inputting and storing the string
@@ -64,22 +66,45 @@ receive:
             ldab #100
             jsr   delay
             
-;char manipulation
+Charmanipulation:
             ldx #inpstr
-            ldaa #0
+            ldaa #1
             staa $4500
             jsr processstring
+
+Storenumeric: 
+            ;LDY #numbers
+            ;LDX #inpstr
+            ;jsr numbering          
+
             
 transmit:           
             ;Sub-routine for outputting the string 
-            jsr TE     
+            ;jsr TE     
          
             ;Always brnach to the start
             bra start  
             
             
             
-
+ ;###########
+ ;exercise 4
+ ;###########
+ numbering:     
+            LDAA x
+            suba #$0d
+            BEQ terminating
+            ldaa x
+            SUBA #9
+            BGT next
+            ldaa x
+            staa y
+            iny
+ next:
+            inx
+            bra numbering 
+ terminating:           
+            rts  
                    
 
 ;############
@@ -89,76 +114,75 @@ transmit:
 ;check letter validity
 processstring:         ;loop through each letter and apply the required operation
                    
-                   LDAB  0, x            
-                   BRA checkIfTerminate            ;check if it is the end of the string
-keepProcessing:                   
-                   BRA checkIfAlpha
-validchar:
-                   ;apply the required function
-                   BRA applyRequiredFunction
-nextchar:         
-                   LDAB x
-                   TBA
-                   SUBA #32
-                   BNE skip
-spacechar:         ldaa #1
-                   staa $4500
-                   inx
-                   bra processstring            
-skip:       
-                   ldaa #0
-                   staa $4500  
-                   inx
-                   bra processstring                   
-
-terminate:        
-                   rts
-                   
-               
-
-;supporting function
-checkIfTerminate:    
-            
+            LDAB  0, x            
             CMPB  terminating_character
             BEQ   terminate
-            BRA keepProcessing            
-            
-            
-checkIfAlpha:
-
+keepProcessing:                   
             TBA
             SUBA #65                           ;check if ascii code is less than 65, if yes, move on to next char
             BLT  nextchar
-            
+                
             TBA
             SUBA #90                           
             BLT  validchar
-            
+                  
             TBA
             SUBA #97                           
             BLT  nextchar
-            
+                  
             TBA
             SUBA #122                         
             BGE  nextchar
-                          
-            BRA validchar                        
-            
-
-                     
-;function setter                   
-applyRequiredFunction:             ;determines which function we are using
-                       
+                                
+            BRA validchar  
+validchar:
+             
+                                          
             LDAA  #1              ;0 for all caps, 1 for space to upper
             LDAB  #0
             sba
             BGT Capspace
             BEQ allToUpper
-;lower:              
+            ;bra allToUpper        
            ;bra   allToLower
+           ;bra fullspace
            
+           
+           
+;test if spce char                   ;
+nextchar:   
+
+            LDAB x
+            TBA
+            SUBA #46
+            BNE spacecheck
+            stx $4501
+                  
             
+spacecheck:
+            LDAB x
+            TBA
+            SUBA #32
+            BNE skip
+
+;if space char set flag to 1
+spacechar:  
+            ldaa #1
+            staa $4500
+            inx
+            bra processstring
+;else skip                        
+skip:       
+            ldaa #0
+            staa $4500  
+            inx
+            bra processstring                   
+
+terminate:        
+            rts
                    
+               
+                
                         
 ;functions
 allToUpper:
@@ -172,6 +196,8 @@ storechar:
             BRA nextchar
             
 
+
+
 allToLower:
             ldab x
             TBA
@@ -184,6 +210,7 @@ storechar2:
             
 
 
+
 Capspace 
            
            ldaa x
@@ -193,8 +220,10 @@ Capspace
            BGT allToLower
            
             
+fullspace
            
-           
+          stx $1502
+          ldy $1501 
 
                        
                       
@@ -206,7 +235,7 @@ Capspace
 
 ;receive char
 RE
-            movb #%00000100,SCI1CR2 ;Enable receiving bit
+            ;movb #%00000100,SCI1CR2 ;Enable receiving bit
             ldx #inpstr ;load the address of the reserved memory  
 getc  
             
@@ -219,6 +248,9 @@ getc
             inx 
             bra getc     ;Continue for remaining char
 return2
+            ldab #$0a    ;Store carrage char in reserved memory
+            stab x
+            inx
             ldab #$0D    ;Store carrage char in reserved memory
             stab x
             rts           
@@ -226,7 +258,6 @@ return2
            
 ;transmit char
 TE
-            movb #%00001000,SCI1CR2 ;Enable transmitting bit
             LDX   #inpstr              ;load the address of the reserved memory  
 
 putc    
@@ -239,7 +270,7 @@ putc
             inx     
             bra putc                      ; Else go to next Character
 return
-            brclr SCI1SR1,#mSCI1SR1_TC,*  ;Only return when transmission complete
+            ;brclr SCI1SR1,#mSCI1SR1_TC,*  ;Only return when transmission complete
             rts 
             
 
