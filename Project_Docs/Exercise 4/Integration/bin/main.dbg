@@ -8715,6 +8715,7 @@ digits_string  FCC "0123456789"
                
 port_h_value  DS.W  1
 long_delay  DS.W  1
+was_space  DS.B  1
 
 
 
@@ -8753,9 +8754,9 @@ receive:
             
 Charmanipulation:
             ldx #inpstr
+            
             ldaa #1
-            staa $4500
-            staa $4501
+            staa was_space
             jsr processstring
 
 Storenumeric: 
@@ -8809,11 +8810,10 @@ keepProcessing:
 validchar:
             
             ;need to come up with a way to do port h as input 
-            ;JSR readFromButton                             
-            ;brclr port_h_value,#%10000000,default
-            ;BGT Capspace
+            JSR readFromButton                             
+            brclr port_h_value,#%10000000,default
+            bra Capspace
 default:           
-            ;BEQ allToUpper ;
             bra allToUpper        
            ;bra   allToLower
            ;bra fullspace
@@ -8822,32 +8822,21 @@ default:
 ;test if spce char                   ;
 nextchar:   
 
-    fullstopcheck:
-            LDAB x
-            TBA
-            SUBA #46
-            BNE spacecheck
-            ldab #1
-            stab $4501
-            inx
-            bra processstring
-                  
-            
+                             
     spacecheck:
             LDAB x
             TBA
             SUBA #32
             BNE skip  
             ldaa #1
-            staa $4500
+            staa was_space
             inx
             bra processstring
     
     ;else skip                        
     skip:       
             ldaa #0
-            staa $4500
-            staa $4501  
+            staa was_space 
             inx
             bra processstring                   
 
@@ -8884,25 +8873,14 @@ storechar2:
 
 
 
-Capspace 
-           
+Capspace      
            ldaa x
            ldab #1
-           subb $4500
+           subb was_space
            BEQ allToUpper
            BGT allToLower
            
-            
-fullspace
-          ;capitalise the first letter
-          ldaa x
-          ldab #1
-          subb $4500
-          BGT allToLower
-          ldab #1
-          subb $4501 
-          BEQ allToUpper
-          BGT allToLower
+           
  
  
  ;delay
@@ -8945,6 +8923,12 @@ inner_loop
 
 ;seven seg main code                       
  sevenseg:
+ 
+          LDX  #numbers
+          ldaa x
+          ldab #13
+          SBA
+          BEQ  returnsev
            
            ;enter code here
             LDAA    #$FF
@@ -8970,6 +8954,7 @@ inner_loop
             ;BRA    moving
             ;JSR     readFromButton
             ;JSR     moving
+returnsev:            
              rts                    
 
 ;static 4 digits function
