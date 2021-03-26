@@ -25,7 +25,9 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
  ; Insert here your data definition.
 Counter     DS.W 1
 FiboRes     DS.W 1
-str         fcc "abcde!" 
+inpstr      fcc "a. bc. de!" 
+            fcb $0d
+terminating_character  fcb $0d
 
 function_on ds 1
 ;isletter:   ds $3000
@@ -39,144 +41,158 @@ _Startup:
             LDS   #RAMEnd+1       ; initialize the stack pointer
 
             CLI                     ; enable interrupts
+mainLoop: 
 
 
-
-;set initial conditions
-mainLoop:
-
+Charmanipulation:
+            ldx #inpstr
             ldaa #1
-            ldaa #1
-            staa $1000            
-            staa $1001
-            ldab #0
-            stab $1002
-            stab $1003 
-            clra
-            clrb 
-           
-           ;load breaking character
-            LDAA   #$21 
-            staa   $1600 ; breaking char
-            
-            ;load ' ' 
-            ldaa #32
-            staa $1700
-            
-            ;load . 
-            ldaa #46
-            staa $1800
-            
-            ;load str as index 
-            ldx #str           
-           
-            ;enter char loop
-            bsr charloop
-            clra
-            clrb 
-            bra mainLoop
-            
-            
-;looping through each char
-charloop:  
-            ;load current letter into the accumulator        
-            ldaa x       
-            staa $1500 ;original value
-            staa $3500 ;modified value
-
-            
-            ;perform operations 
-            ;check the current chacter is a letter      
-            bsr checklet
-action:  
-            ;complete action on the char - given it is a letter
-            bsr checkupper
-            bsr convupper
- 
-            
+            staa $4500
+            staa $4501 
+            jsr processstring
+            bra mainLoop 
             
 
-            
-            
-            
-            ;terminate or continue string loop       
-            ;compare with fixed value
-skipaction:
-            ;restore this variable
-            ldaa $3500
-            staa x
-            inx
-            
-            ;return to end of loop
-            ldaa $1500
-            ldab $1600
-            sba
-            bne charloop 
-            rts
+                   
 
+;############
+;exercise 1
+;############
 
-
-
-            
-;check if the char is a letter 
-checklet:     ;check for 32 and 46 binary
-              ;check full .
-              ldaa $1500
-              ldab $1700
-              sba
-              staa $1900 
-              BEQ skipaction
-              
-              ;check white space
-              ldaa $1500
-              ldab $1800
-              sba 
-              staa $2000
-              BEQ skipaction
-              
-             ;return 
-             rts                  
-         
-
-;check if the current char is upper or lower case            
-checkupper:
-             ;65-90 upper 97-122 lower
-             
-             ;compare current char to be upper or lower
-             ldaa $1500
-             ldab #95
-             sba
-             bge islower
-             ble isupper
-islower:      
-             ldaa #0
-             staa $3000
-             bra return
-isupper:
-             ldaa #1
-             staa $3000
-             bra return
-return:             
-             ;return to char actions
-             rts           
-           
-
-;convert all to upper
-convupper:
-            ldaa $1500
-            ldab $3000
-            tstb
-            bgt skipupper
-            ldab #32
-            sba
-            staa $3500
-skipupper:  
-            rts
-            
-
+;check letter validity
+processstring:         ;loop through each letter and apply the required operation
+                   
+            LDAB  0, x            
+            CMPB  terminating_character
+            BEQ   terminate
+keepProcessing:                   
+            TBA
+            SUBA #65                           ;check if ascii code is less than 65, if yes, move on to next char
+            BLT  nextchar
+                
+            TBA
+            SUBA #90                           
+            BLT  validchar
                   
-          
+            TBA
+            SUBA #97                           
+            BLT  nextchar
+                  
+            TBA
+            SUBA #122                         
+            BGE  nextchar
+                                
+            BRA validchar  
+validchar:
+            
+            ;need to come up with a way to do port h as input 
+            LDAA PTH 
+            staa $2000                             
+            LDAA  #1              ;0 for all caps, 1 for space to upper
+            LDAB  #0
+            sba
+            ;bra Capspace
+            rts Capspace
+            bra allToUpper
+            ;bra allToUpper        
+            ;bra   allToLower
+            ;bra fullspace
+                      
            
+;test if spce char                   ;
+nextchar:   
+
+    fullstopcheck:
+            LDAB x
+            TBA
+            SUBA #46
+            BNE spacecheck
+            ldab #1
+            stab $4501
+            inx
+            bra processstring
+                  
+            
+    spacecheck:
+            LDAB x
+            TBA
+            SUBA #32
+            BNE skip  
+            ldaa #1
+            staa $4500
+            inx
+            bra processstring
+    
+    ;else skip                        
+    skip:       
+            ldaa #0
+            staa $4500
+            staa $4501  
+            inx
+            bra processstring                   
+
+terminate:        
+            rts
+                   
+               
+                
+                        
+;functions
+allToUpper:
+            ldab x
+            TBA
+            SUBA #90
+            BLE  storechar           
+            SUBB #32
+storechar:
+            stab x                        
+            BRA nextchar
+            
+
+
+
+allToLower:
+            ldab x
+            TBA
+            SUBA #90
+            BGT  storechar2            
+            ADDB #32
+storechar2:
+            stab x 
+            BRA nextchar
+            
+
+
+
+Capspace 
+           
+           ldaa x
+           ldab #1
+           subb $4500
+           BEQ allToUpper
+           BGT allToLower
+           
+            
+fullspace
+          ;capitalise the first letter
+          ldaa x
+          ldab #1
+          subb $4500
+          BGT allToLower
+          ldab #1
+          subb $4501 
+          BEQ allToUpper
+          BGT allToLower
+ 
+ 
+
+
+
+
+                   
+
+
+
             
             
 
