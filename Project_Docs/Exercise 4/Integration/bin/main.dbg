@@ -8697,7 +8697,7 @@ FiboRes     DS.W 1
 str         fcc "string"
             fcb $0d
 
-inpstr rmb  $300
+inpstr rmb  $2
 numbers rmb $100
 terminating_character  fcb $0d
 
@@ -8740,19 +8740,19 @@ Charmanipulation:
             ldaa #1
             staa $4500
             staa $4501
-            jsr processstring
+            ;jsr processstring
 
 Storenumeric: 
-            LDY #numbers
-            LDX #inpstr
-            jsr numbering
-            jsr sevenseg          
+            ;LDY #numbers
+            ;LDX #inpstr
+            ;jsr numbering
+                      
 
             
 transmit:           
             ;Sub-routine for outputting the string 
             ;jsr TE     
-         
+            ;jsr sevenseg
             ;Always brnach to the start
             bra start  
             
