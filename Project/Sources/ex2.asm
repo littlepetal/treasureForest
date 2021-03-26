@@ -31,8 +31,12 @@ output_digit  DS.B 1  ; allocate one byte for the output digit
 length_count  DS.B 1
 seven_seg_code DS.B 10 
 terminating_character  FCC ""
-digits_string  FCC "567891234"
+digits_string  FCC "0123456789"
                FCB $0D
+               
+port_h_value  DS.B  1
+long_delay  DS.W  1
+               
 ; code section
           ORG   ROMStart
 
@@ -54,15 +58,19 @@ _Startup:
           LDAA    #56
           STAA    ascii_value
           
+          LDY     #200
+          STY     long_delay
+                    
           ;JSR     checkLength
           
           ;BRA     staticFourDigits
           ;BRA     asciiToDigitOutput
-          ;BRA     scroll  
+          BRA     scroll  
           
           ;LDX    #digits_string
           ;BRA    moving
-          JSR     readFromButton
+          ;JSR     readFromButton
+          ;JSR     moving
                               
 staticFourDigits:    ;LDAA    #LEDON	; load accumulator A with value for port B   (potentially redundant)
           
@@ -107,9 +115,25 @@ asciiToDigitOutput:
           JSR     digit_3 
           
           BRA     asciiToDigitOutput
+                    
+moving:
+          LDX     #digits_string
+          
+          loopmove:
+          
+          JSR     asciiToDigitOutput 
+          
+          INX
+          
+          LDAB    0, x
+          SUBB    #13
+          BEQ     moving 
+                   
+          BRA     loopmove         
           
 readFromButton:
           LDAA    PTH
+          STAA    port_h_value
           RTS           
           
 scroll:
@@ -119,50 +143,63 @@ scroll:
           loop:
                   LDAA    0, x
                   
-                  TAB
-                  SUBB    #13
-                  BEQ     scroll
-                  
                   STAA    ascii_value
                   JSR     getSevenSegCode
                   JSR     digit_0
 
-                  LDAA    1, x
-                  
-                  TAB
-                  SUBB    #13
-                  BEQ     scroll                  
+                  LDAA    1, x               
                   
                   STAA    ascii_value
                   JSR     getSevenSegCode
                   JSR     digit_1
 
-                  LDAA    2, x
-                  
-                  TAB
-                  SUBB    #13
-                  BEQ     scroll                  
+                  LDAA    2, x               
                   
                   STAA    ascii_value
                   JSR     getSevenSegCode
                   JSR     digit_2
   
-                  LDAA    3, x
-                  
-                  TAB
-                  SUBB    #13
-                  BEQ     scroll                  
+                  LDAA    3, x                 
                   
                   STAA    ascii_value
                   JSR     getSevenSegCode
                   JSR     digit_3          
 
-                  INX     
+                  
+                  LDY     long_delay
+                  DEY
+                                          
+                  
+                  BEQ     restart
+                  
+                  STY     long_delay                  
+    
 
                   BRA     loop
                   
-          ;restart:
-                  ;BRA     scroll        
+          restart:
+                  LDY     #200
+                  STY     long_delay
+                  
+                  INX
+                  
+                  LDAB    0, x
+                  SUBB    #13
+                  BEQ     scroll 
+                  
+                  LDAB    1, x
+                  SUBB    #13
+                  BEQ     scroll
+                  
+                  LDAB    2, x
+                  SUBB    #13
+                  BEQ     scroll 
+                  
+                  LDAB    3, x
+                  SUBB    #13
+                  BEQ     scroll                  
+                                   
+                  BRA     loop        
 
 delay:                     ; keeps the current display lit for approx. 0.5ms
           LDAA #200                        
@@ -235,9 +272,9 @@ asciiToDigitlookup:
                 STAB    output_digit
                 RTS
                 
-initialise_seven_seg_code:
+initialise_seven_seg_code:             ; redundant
           LDX     #seven_seg_code
-          
+         
           LDAB    #$7E
           STAB    0,x
           LDAB    #$30
