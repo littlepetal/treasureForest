@@ -92,11 +92,11 @@ validchar:
             LDAB  #0
             sba
             ;bra Capspace
-            rts Capspace
-            bra allToUpper
+            ;rts Capspace
+            ;bra allToUpper
             ;bra allToUpper        
             ;bra   allToLower
-            ;bra fullspace
+            bra fullspace
                       
            
 ;test if spce char                   ;

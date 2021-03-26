@@ -8758,11 +8758,12 @@ validchar:
             LDAA  #1              ;0 for all caps, 1 for space to upper
             LDAB  #0
             sba
-             ;bra Capspace
-             bra allToUpper
+            ;bra Capspace
+            ;rts Capspace
+            ;bra allToUpper
             ;bra allToUpper        
             ;bra   allToLower
-            ;bra fullspace
+            bra fullspace
                       
            
 ;test if spce char                   ;

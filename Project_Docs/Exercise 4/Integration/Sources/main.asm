@@ -46,7 +46,7 @@ seven_seg_code DS.B 10
 digits_string  FCC "0123456789"
                FCB $0D
                
-port_h_value  DS.B  1
+port_h_value  DS.W  1
 long_delay  DS.W  1
 
 
@@ -89,7 +89,7 @@ Charmanipulation:
             ldaa #1
             staa $4500
             staa $4501
-            ;jsr processstring
+            jsr processstring
 
 Storenumeric: 
             LDY #numbers
@@ -100,7 +100,9 @@ Storenumeric:
             
 transmit:           
             ;Sub-routine for outputting the string 
-            ;jsr TE     
+            jsr TE
+            
+                 
             jsr sevenseg
             ;Always brnach to the start
             bra start  
@@ -140,14 +142,12 @@ keepProcessing:
 validchar:
             
             ;need to come up with a way to do port h as input 
-            LDAA PTH 
-            staa $2000                             
-            LDAA  #0              ;0 for all caps, 1 for space to upper
-            LDAB  #0
-            sba
-            BGT Capspace
-            BEQ allToUpper
-            ;bra allToUpper        
+            ;JSR readFromButton                             
+            ;brclr port_h_value,#%10000000,default
+            ;BGT Capspace
+default:           
+            ;BEQ allToUpper ;
+            bra allToUpper        
            ;bra   allToLower
            ;bra fullspace
                       
@@ -278,6 +278,7 @@ inner_loop
 
 ;seven seg main code                       
  sevenseg:
+           
            ;enter code here
             LDAA    #$FF
             STAA    DDRB    ; configure PORTB as output
@@ -372,7 +373,11 @@ readFromButton:
 
 ;scrolling function          
 scroll:
-          LDX     #numbers
+          LDX  #numbers
+          ldaa x
+          ldab #13
+          SBA
+          BEQ  scrollend
           
           loop:
                   LDAA    0, x
@@ -381,12 +386,13 @@ scroll:
                   JSR     getSevenSegCode
                   JSR     digit_0
 
-                  LDAA    1, x               
+                  LDAA    1, x 
+                          
                   
                   STAA    ascii_value
                   JSR     getSevenSegCode
                   JSR     digit_1
-
+                 
                   LDAA    2, x               
                   
                   STAA    ascii_value
@@ -472,6 +478,7 @@ delayLong:                     ; keeps the current display lit for approx. 0.5ms
 digit_0:
           LDAA    #$07     ; need to write #$07 to PORTP
           STAA    PTP      ; to enable first LED
+          ;
           STAB    PORTB
           BSR     delay2
           RTS
