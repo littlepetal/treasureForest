@@ -1,3 +1,4 @@
+
 ;*****************************************************************
 ;* This stationery serves as the framework for a                 *
 ;* user application (single file, absolute assembly application) *
