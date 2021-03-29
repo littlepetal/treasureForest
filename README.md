@@ -69,40 +69,36 @@ Exercise 3 should take a string from the terminal emulator which is connected to
 
 
 ### Discussion Questions:
--	What problems can you see arising from the use of polling when dealing with data input? The main problem will polling is it limits the device to waiting for the data to be ready before it can move on. This is fine if time is not important and this is the only task we want to achieve. However if we want to perform other tasks at the same time, this is not possible as polling relies on a sequential order of events. Another Main issues is the problem arising when timing is critical, as polling does take a finite amount of time, this can have negative effects on the program. 
-•	What happens if there are more characters input than there is space to store them?
-o	These characters will flow onto the next memory addresses. This is ok if there is nothing else being stored in memory, but in our example we have another space for memory where we store the numbers used for the seven 7. If there isn’t enough space defined, the string will fill this space, then this will be overwritten by characters or the characters will be later sent to the seven seg. Further more when this str goes to be sent out via serial, it could be overwritten by numbers. 
+What problems can you see arising from the use of polling when dealing with data input? 
+- The main problem will polling is it limits the device to waiting for the data to be ready before it can move on. This is fine if time is not important and this is the only task we want to achieve. However if we want to perform other tasks at the same time, this is not possible as polling relies on a sequential order of events. Another Main issues is the problem arising when timing is critical, as polling does take a finite amount of time, this can have negative effects on the program. 
 
+What happens if there are more characters input than there is space to store them?
+- These characters will flow onto the next memory addresses. This is ok if there is nothing else being stored in memory, but in our example we have another space for memory where we store the numbers used for the seven 7. If there isn’t enough space defined, the string will fill this space, then this will be overwritten by characters or the characters will be later sent to the seven seg. Further more when this str goes to be sent out via serial, it could be overwritten by numbers. 
 
-Testing:
-•	Are the SCI registers for baud rate, control and status being set correctly?
-o	Check that SCI1BDH is set to #00
-o	Check that SCI1BDL is set #156 (baud rate) 
-o	Check that SCI1CR2 has a binary value of #%00001100
-o	Check status register for errors when unexpected behavior occurs. 
-•	Printing to the terminal
-o	Check that the sub-routine is being called and run by setting a breakpoint in the TE subroutine.
-o	Check that register X is loading the start of the strings location
-o	Check that the branch until the TDRF flag is being set and the code runs past this branch by setting a breakpoint after this conditional branch.
-o	Use Putty to verify serial signals can be sent by sending chars from string. 
-	If this doesn’t work, verify comm ports.
-	Verify serial registers are all for port 1. 
-	Check code loaded successfully onto the board.
-o	Check that the terminating character is causing the code to break from the sub-routine by setting a breakpoint before the RTS.
-o	If there are errors use the status registers to check for framing, parity, or other others. 
-•	Inputting a string from the terminal 
-o	Check that the sub-routine is being called and run by setting a breakpoint in the RE subroutine.
-o	Check that register X is loading the start of the memory’s location
-o	Check that the branch until the RDRF flag is being set and the code runs past this branch by setting a breakpoint after this conditional branch.
-o	Check that the SCI1DRL is loading a value into a register. 
-o	Check that ascii values are entering as expected by using ascii table.
-o	Make sure X is incrementing as desired by using a breakpoint to the step through the increment step.
-o	Check that the terminating character is causing the code to break from the sub-routine by setting a breakpoint before the RTS.
-o	If there are errors use the status registers to check for framing, parity, or other others. 
+### Testing:
+Are the SCI registers for baud rate, control and status being set correctly?
+- Check that SCI1BDH is set to #00
+- Check that SCI1BDL is set #156 (baud rate) 
+- Check that SCI1CR2 has a binary value of #%00001100
+- Check status register for errors when unexpected behavior occurs. 
 
+Printing to the terminal
+- Check that the sub-routine is being called and run by setting a breakpoint in the TE subroutine.
+- Check that register X is loading the start of the strings location
+- Check that the branch until the TDRF flag is being set and the code runs past this branch by setting a breakpoint after this conditional branch.
+- Use Putty to verify serial signals can be sent by sending chars from string. If this doesn’t work, verify comm ports. Verify serial registers are all for port 1. Check code loaded successfully onto the board.
+- Check that the terminating character is causing the code to break from the sub-routine by setting a breakpoint before the RTS.
+- If there are errors use the status registers to check for framing, parity, or other others. 
 
-
-
+Inputting a string from the terminal 
+- Check that the sub-routine is being called and run by setting a breakpoint in the RE subroutine.
+- Check that register X is loading the start of the memory’s location
+- Check that the branch until the RDRF flag is being set and the code runs past this branch by setting a breakpoint after this conditional branch.
+- Check that the SCI1DRL is loading a value into a register. 
+- Check that ascii values are entering as expected by using ascii table.
+- Make sure X is incrementing as desired by using a breakpoint to the step through the increment step.
+- Check that the terminating character is causing the code to break from the sub-routine by setting a breakpoint before the RTS.
+- If there are errors use the status registers to check for framing, parity, or other others. 
 
 
 ## Exercise 4 Documentation 
@@ -113,8 +109,8 @@ Exercise 4 should take a string from the terminal emulator, such as putty, which
 ### Program Summary:
 
 Note detailed documentation for each of these steps can be found in each exercises own documentation*
- -	Sets Baud rate and control registers for SCI.
- -	Jump to receive subroutine for serial input.
+- Sets Baud rate and control registers for SCI.
+- Jump to receive subroutine for serial input.
  -	Wait until TDRE bit is set. 
  -	Then transmit data into memory location. 
  -	Once the CR is hit, add newline and CR.
@@ -125,9 +121,7 @@ Note detailed documentation for each of these steps can be found in each exercis
  -	Jump to the string manipulation subroutine. 
   -	Check if the string should terminate. 
   -	Check if char is alpha. Alpha chars get processed. Non alpha chars get skipped. 
-  -	Processed chars have a function applied to them.
- -	All upper
-  -	Upper after a space
+  -	Processed chars have a function applied to them. All upper or Upper after a space
   -	Non valid chars are skipped. 
   -	Before moving to the next char the current char is tested if it is a space, this information is stored in memory as a flag. 
   -	Position is incremented and branches back to start of the subroutine.
@@ -159,6 +153,7 @@ This approach is best seen where exercise 1 the string is restored in the memory
 -	Other strategies also included reloading registers to ensure that previous operations would not affect the aims, this was particularly important as new sections of the code were appended or added to the old code. 
 
 How did you test the code?
+
 -	For the testing, please refer to each exercises specific section for testing. 
 -	Exercise 3 for receiving characters testing. 
 -	Exercise 1 for testing the string manipulation. 
@@ -172,3 +167,4 @@ How did you test the code?
 -	Check that the subroutine terminates at the carriage char.
 -	See Exercise 3 for receiving characters testing. ![image](https://user-images.githubusercontent.com/79816824/112794901-6ef49300-90b3-11eb-81a8-421f8ef5244d.png)
 
+# end
