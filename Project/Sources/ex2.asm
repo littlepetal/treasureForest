@@ -1,5 +1,3 @@
-
-
 ;*************************************************
 ;*       Program for Laboratory 
 ;*
@@ -36,6 +34,7 @@ digits_string  FCC "0123456789"
                
 port_h_value  DS.B  1
 long_delay  DS.W  1
+sevenSegEnabler DS.B 1
                
 ; code section
           ORG   ROMStart
@@ -60,19 +59,15 @@ _Startup:
           
           LDY     #200
           STY     long_delay
-                    
-          ;JSR     checkLength
-          
-          ;BRA     staticFourDigits
-          ;BRA     asciiToDigitOutput
-          BRA     scroll  
+                              
+          ;JSR     staticFourDigits
+          ;JSR     asciiToDigitOutput
+          ;JSR     scroll  
           
           ;LDX    #digits_string
-          ;BRA    moving
-          ;JSR     readFromButton
-          ;JSR     moving
+          ;JSR     choiceOfDigits
                               
-staticFourDigits:    ;LDAA    #LEDON	; load accumulator A with value for port B   (potentially redundant)
+staticFourDigits:   
           
           LDAB    #$06    ; load accumulator B with value to be displayed
           JSR     digit_0          
@@ -85,9 +80,7 @@ staticFourDigits:    ;LDAA    #LEDON	; load accumulator A with value for port B 
           
           LDAB    #$66    ; load accumulator B with value to be displayed
           JSR     digit_3  
-                                      
-          ;CLR     PORTB	  ; now turn the LED(s) off
-          
+                                                
           BRA     staticFourDigits	   ; loop back to beginning
           
 asciiToDigitOutput:
@@ -115,21 +108,7 @@ asciiToDigitOutput:
           JSR     digit_3 
           
           BRA     asciiToDigitOutput
-                    
-moving:
-          LDX     #digits_string
-          
-          loopmove:
-          
-          JSR     asciiToDigitOutput 
-          
-          INX
-          
-          LDAB    0, x
-          SUBB    #13
-          BEQ     moving 
-                   
-          BRA     loopmove         
+                            
           
 readFromButton:
           LDAA    PTH
@@ -138,7 +117,6 @@ readFromButton:
           
 scroll:
           LDX     #digits_string
-          ;LDY     length_count
           
           loop:
                   LDAA    0, x
@@ -205,7 +183,6 @@ delay:                     ; keeps the current display lit for approx. 0.5ms
           LDAA #200                        
           outerLoop:            
                   LDY #58
-                  ;LDY #1000
                   
                   innerLoop:
                           DEY            
@@ -213,20 +190,6 @@ delay:                     ; keeps the current display lit for approx. 0.5ms
             
                   DECA
                   BNE outerLoop            
-          RTS	
-          
-delayLong:                     ; keeps the current display lit for approx. 0.5ms
-          LDAA #200                        
-          outerLoopagain:            
-                  ;LDY #58
-                  LDY #10000
-                  
-                  innerLoopagain:
-                          DEY            
-                          BNE innerLoopagain            
-            
-                  DECA
-                  BNE outerLoopagain            
           RTS	
           
 digit_0:
@@ -257,46 +220,12 @@ digit_3:
           BSR     delay
           RTS
           
-asciiToDigitlookup:
-          LDAA    ascii_value
-          LDAB    #0
-          
-          SUBA    #47
-          
-          loopOne:                  
-                  DECA
-                  BEQ     found
-                  INCB
-                  BRA loopOne
-          found:
-                STAB    output_digit
-                RTS
-                
-initialise_seven_seg_code:             ; redundant
-          LDX     #seven_seg_code
-         
-          LDAB    #$7E
-          STAB    0,x
-          LDAB    #$30
-          STAB    1,x
-          LDAB    #$6D
-          STAB    2,x
-          LDAB    #$79
-          STAB    3,x          
-          LDAB    #$33
-          STAB    4,x                    
-          LDAB    #$5B
-          STAB    5,x
-          LDAB    #$5F
-          STAB    6,x          
-          LDAB    #$70
-          STAB    7,x                              
-          LDAB    #$7F
-          STAB    8,x
-          LDAB    #$7B
-          STAB    9,x  
-          
-          RTS      
+digit_general:
+          LDAA    sevenSegEnabler     ; need to write #$0E to PORTP
+          STAA    PTP      ; to enable fourth LED  
+          STAB    PORTB
+          BSR     delay
+          RTS               
           
 getSevenSegCode:                        ; ascii lookup table
           LDAA   ascii_value
@@ -341,9 +270,6 @@ getSevenSegCode:                        ; ascii lookup table
           SUBB   #57
           BEQ    found_9
           
-          ;TAB
-          ;SUBB   #13
-          ;BEQ    restart
           
           found_0:
                  LDAB   #$3F
@@ -374,23 +300,21 @@ getSevenSegCode:                        ; ascii lookup table
                  RTS 
           found_9:
                  LDAB   #$6F
-                 RTS                                                                 
-                                                  
-checkLength:
-          LDAA  #0
-          LDX   #digits_string
+                 RTS  
+                                                                                
+ choiceOfDigits:    
+          LDAB    #$06    ; load accumulator B with value to be displayed
           
-          loopTwo:
-                LDAB  1, x+
-                CMPB  terminating_character
-                BEQ   finishLengthCount
-                INCA               
-                BRA loopTwo
-                
-          finishLengthCount:
-                                            
-                STAA  length_count
-                RTS         
+          JSR readFromButton
+          
+          LDAA    port_h_value
+          STAA    sevenSegEnabler
+          
+          JSR    digit_general
+          
+                                                
+          BRA     choiceOfDigits	   ; loop back to beginning
+                                                   
   
 ;**************************************************************
 ;*                 Interrupt Vectors                          *
