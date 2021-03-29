@@ -144,10 +144,7 @@ How can the 7-seg string be displayed if the microprocessor is currently waiting
 What design and planning strategies did you use to incorporate all of the previous exercises into this task? 
 -	For each module there is specified inputs and outputs which would be needed in the pipeline. For example, the string manipulation tasks and the seven seg scrolling functions. Required a string which a way of determining the end of the string. 
 -	We tried to standardise aspects of the code such as what would be the terminating character. 
--	We broke the integration task into a flow diagram of what should happen and aimed at decoupling each of the exercises. Whilst this may have not been the most efficient approach, it makes testing much easier as for each stage of the pipeline there are clear inputs and clear desired outputs. 
-
-
-This approach is best seen where exercise 1 the string is restored in the memory location and then for exercise 2 this new string is copied to a new memory location for the numerical characters, rather than attempt to do it all in one go. 
+-	We broke the integration task into a flow diagram of what should happen and aimed at decoupling each of the exercises. Whilst this may have not been the most efficient approach, it makes testing much easier as for each stage of the pipeline there are clear inputs and clear desired outputs. This approach is best seen where exercise 1 the string is restored in the memory location and then for exercise 2 this new string is copied to a new memory location for the numerical characters, rather than attempt to do it all in one go. 
 -	This makes testing easier. 
 -	Also, where previously in exercise 1 each of the tasks were subroutine functions. We made these branches. 
 -	Other strategies also included reloading registers to ensure that previous operations would not affect the aims, this was particularly important as new sections of the code were appended or added to the old code. 
@@ -165,6 +162,8 @@ How did you test the code?
 -	Check that the asci comparator works as the branch to ‘next’ should not occur. 
 -	Step through to make sure x is inc and y in inc if there is a number.
 -	Check that the subroutine terminates at the carriage char.
--	See Exercise 3 for receiving characters testing. ![image](https://user-images.githubusercontent.com/79816824/112794901-6ef49300-90b3-11eb-81a8-421f8ef5244d.png)
+-	See Exercise 3 for receiving characters testing.
+
+![image](https://user-images.githubusercontent.com/79816824/112794901-6ef49300-90b3-11eb-81a8-421f8ef5244d.png)
 
 # end
