@@ -9,7 +9,7 @@ Exercise 1 should take a pre-defined string from the program and load the memory
 	2 – Make all of the letters upper case  
 	3 – Capitalise only the first letter of each word
 	4 – Capitalise the first letter of the string, and the first letter after a full-stop
-
+![alt text](https://github.com/littlepetal/treasureForest/blob/main/Project_Docs/Exercise%201/Ex1.png)
 ##Program Summary:
 
 - The program defines required string and other variables
