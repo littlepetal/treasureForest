@@ -9,7 +9,7 @@ Exercise 1 should take a pre-defined string from the program and load the memory
 	2 – Make all of the letters upper case  
 	3 – Capitalise only the first letter of each word
 	4 – Capitalise the first letter of the string, and the first letter after a full-stop
-![alt text](https://github.com/littlepetal/treasureForest/blob/main/Project_Docs/Exercise%201/Ex1.png)
+
 ##Program Summary:
 
 - The program defines required string and other variables
@@ -52,4 +52,123 @@ Exercise 1 should take a pre-defined string from the program and load the memory
 	Dec value 32
 
 ##Diagram:
+![alt text](https://github.com/littlepetal/treasureForest/blob/main/Project_Docs/Exercise%201/Ex1.png)
+
+## Exercise 3 Documentation 
+
+### Summary of Task:
+Exercise 3 should take a string from the terminal emulator which is connected to the SCI1 input port, then be read in through the SCI to be stored in memory. This string stored in memory should then be outputted through the SCI port and displayed on the terminal. The carriage break character should be used to denote the end of the string. The string should print out once per second. 
+
+### Program Summary:
+-	The program reserves 300 bytes of memory at address inpstr
+-	The program sets the baud rate at 9600 by writing to the SCI1BDH/DL registers 
+-	Loads the address of inpstr to register x
+-	Using a subroutine the program jumps to the receive subroutine, The control register 2 is set to receiving enabled. When the mask for RDRF empty is 1, the subroutine will run, not moving to the next character until this mask is met. The data in the SCI1DRL register is stored in reg b. This is compared to the carriage character value. If 0, return from the function and add the carriage character to the current memory address of inpstr. Else store the value of the char in reg b at current address position in x, increment x
+-	Using a subroutine there is a delay of 1 second.
+-	Using a subroutine the program jumps to the transmit subroutine. The control register 2 is set to transmitting enabled. When the mask for RTDE empty is 1, the subroutine will run, not moving to the next character until this mask is met. The data in the address of x in moved to SCI1DRL register. This is compared to the carriage character value. If 0, return from the subroutine as this is the end of the string, only return when transmission is complete. Else store loop through the reserved memory until the carriage character.
+
+
+### Discussion Questions:
+-	What problems can you see arising from the use of polling when dealing with data input? The main problem will polling is it limits the device to waiting for the data to be ready before it can move on. This is fine if time is not important and this is the only task we want to achieve. However if we want to perform other tasks at the same time, this is not possible as polling relies on a sequential order of events. Another Main issues is the problem arising when timing is critical, as polling does take a finite amount of time, this can have negative effects on the program. 
+•	What happens if there are more characters input than there is space to store them?
+o	These characters will flow onto the next memory addresses. This is ok if there is nothing else being stored in memory, but in our example we have another space for memory where we store the numbers used for the seven 7. If there isn’t enough space defined, the string will fill this space, then this will be overwritten by characters or the characters will be later sent to the seven seg. Further more when this str goes to be sent out via serial, it could be overwritten by numbers. 
+
+
+Testing:
+•	Are the SCI registers for baud rate, control and status being set correctly?
+o	Check that SCI1BDH is set to #00
+o	Check that SCI1BDL is set #156 (baud rate) 
+o	Check that SCI1CR2 has a binary value of #%00001100
+o	Check status register for errors when unexpected behavior occurs. 
+•	Printing to the terminal
+o	Check that the sub-routine is being called and run by setting a breakpoint in the TE subroutine.
+o	Check that register X is loading the start of the strings location
+o	Check that the branch until the TDRF flag is being set and the code runs past this branch by setting a breakpoint after this conditional branch.
+o	Use Putty to verify serial signals can be sent by sending chars from string. 
+	If this doesn’t work, verify comm ports.
+	Verify serial registers are all for port 1. 
+	Check code loaded successfully onto the board.
+o	Check that the terminating character is causing the code to break from the sub-routine by setting a breakpoint before the RTS.
+o	If there are errors use the status registers to check for framing, parity, or other others. 
+•	Inputting a string from the terminal 
+o	Check that the sub-routine is being called and run by setting a breakpoint in the RE subroutine.
+o	Check that register X is loading the start of the memory’s location
+o	Check that the branch until the RDRF flag is being set and the code runs past this branch by setting a breakpoint after this conditional branch.
+o	Check that the SCI1DRL is loading a value into a register. 
+o	Check that ascii values are entering as expected by using ascii table.
+o	Make sure X is incrementing as desired by using a breakpoint to the step through the increment step.
+o	Check that the terminating character is causing the code to break from the sub-routine by setting a breakpoint before the RTS.
+o	If there are errors use the status registers to check for framing, parity, or other others. 
+
+
+
+
+
+
+## Exercise 4 Documentation 
+
+### Summary of Task:
+Exercise 4 should take a string from the terminal emulator, such as putty, which is connected to the SCI1 input port. This string should be stored in a memory location. After the string is stored it should be manipulated such that it is either converted such that all letters following a space are uppercase (and the remaining characters become lowercase), or b. converted so that all letters are uppercase. This decision is done a switch in port p. A copy of the numerical characters will be stored in a new location. The manipulated string is sent to serial with a delay of 1 second. After this has been executed the numerical characters of the string will be sent to the 7 seg which will scroll through these. After which the program will return and wait for a new input.
+
+### Program Summary:
+
+Note detailed documentation for each of these steps can be found in each exercises own documentation*
+ -	Sets Baud rate and control registers for SCI.
+ -	Jump to receive subroutine for serial input.
+ -	Wait until TDRE bit is set. 
+ -	Then transmit data into memory location. 
+ -	Once the CR is hit, add newline and CR.
+ -	Jump to Delay subroutine 
+ -	Delay for 1 second
+ -	Load the start of the receive string into x. 
+ -	Store an initial flag into memory locations, this is used to capitalise the first letter of the string if required. 
+ -	Jump to the string manipulation subroutine. 
+  -	Check if the string should terminate. 
+  -	Check if char is alpha. Alpha chars get processed. Non alpha chars get skipped. 
+  -	Processed chars have a function applied to them.
+ -	All upper
+  -	Upper after a space
+  -	Non valid chars are skipped. 
+  -	Before moving to the next char the current char is tested if it is a space, this information is stored in memory as a flag. 
+  -	Position is incremented and branches back to start of the subroutine.
+ -	Jump to Numerical store Subroutine.
+  -	Store the numerical characters from the string into a new memory location.
+ - 	Jump to transmit subroutine. 
+  -	Wait until TDRF is set then transmit characters. 
+-	Jump to the seven seg display subroutine. 
+  -	Only utilise the scroll function. 
+  -	Add in a feature where if the numerical string is simply the null character, i.e no numerical characters, the scrolling code is skipped and the led remains off. 
+- 	Return to the start of the loop
+
+### Discussion Questions:
  
+How can the 7-seg string be displayed if the microprocessor is currently waiting for information from the serial port? 
+-	Initially port b should be cleared such that the LED is disabled.
+-	At the end of the scroll for the numerical characters it should also be cleared.
+
+
+What design and planning strategies did you use to incorporate all of the previous exercises into this task? 
+-	For each module there is specified inputs and outputs which would be needed in the pipeline. For example, the string manipulation tasks and the seven seg scrolling functions. Required a string which a way of determining the end of the string. 
+-	We tried to standardise aspects of the code such as what would be the terminating character. 
+-	We broke the integration task into a flow diagram of what should happen and aimed at decoupling each of the exercises. Whilst this may have not been the most efficient approach, it makes testing much easier as for each stage of the pipeline there are clear inputs and clear desired outputs. 
+
+
+This approach is best seen where exercise 1 the string is restored in the memory location and then for exercise 2 this new string is copied to a new memory location for the numerical characters, rather than attempt to do it all in one go. 
+-	This makes testing easier. 
+-	Also, where previously in exercise 1 each of the tasks were subroutine functions. We made these branches. 
+-	Other strategies also included reloading registers to ensure that previous operations would not affect the aims, this was particularly important as new sections of the code were appended or added to the old code. 
+
+How did you test the code?
+-	For the testing, please refer to each exercises specific section for testing. 
+-	Exercise 3 for receiving characters testing. 
+-	Exercise 1 for testing the string manipulation. 
+-	Additionally check using breakpoint that the comparator is working for port H, when 7th bit is 1 it should go to capspace subroutine, if 0 the allupper.
+-	For the storing of only numerical characters 
+-	Check that loading #numbers using spc has created free memory. 
+-	Check numbers and inpstr memory locations have loaded into y and x.
+-	Enter all 1 into the terminal, set breakpoints at the numbering subroutine. 
+-	Check that the asci comparator works as the branch to ‘next’ should not occur. 
+-	Step through to make sure x is inc and y in inc if there is a number.
+-	Check that the subroutine terminates at the carriage char.
+-	See Exercise 3 for receiving characters testing. ![image](https://user-images.githubusercontent.com/79816824/112794901-6ef49300-90b3-11eb-81a8-421f8ef5244d.png)
+
