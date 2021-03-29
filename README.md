@@ -1,7 +1,7 @@
 # Project 1
 ## Exercise 1 Documentation 
 
-##Summary of Task:
+### Summary of Task:
 
 Exercise 1 should take a pre-defined string from the program and load the memory address that references the start of the string into an index register. Once this has been completed 4 tasks involving bit manipulation must be performed on the string with the resulting modified string to be printed out on the terminal once the function has completed. The tasks are as follows:
 
@@ -10,7 +10,7 @@ Exercise 1 should take a pre-defined string from the program and load the memory
 	3 – Capitalise only the first letter of each word
 	4 – Capitalise the first letter of the string, and the first letter after a full-stop
 
-##Program Summary:
+### Program Summary:
 
 - The program defines required string and other variables
 - Loads the starting address of input string into x
@@ -23,15 +23,20 @@ Exercise 1 should take a pre-defined string from the program and load the memory
     -	allToUpper: checks if the char present is already capitalised (less than decimal 90) If it is greater than 90, 32 is subtracted from the value to get its lower case equivalent
     -	allToLower: Checks if the char present is already lower case (greater than decimal 90) If it is less than 90, 32 is added to attain the lower case decimal value Capspace & fullspace. Checks for fullstop and or space flags are set. If both return true for fullspace or space true for capspace, the character will be put into “allToUpper” and the following characters all run through “allToLower”
   -The nextchar section is used to check if the current character is a fullstop or a space using fullstopcheck & spacecheck, this then triggers a flag which is used by a the Capspace and fullspace
+  
+### Diagram:
+![alt text](https://github.com/littlepetal/treasureForest/blob/0bc68a495badff4f2c6611e881f95329f719049f/Project_Docs/Exercise%201/exercise%201%20Documentation/ex1%20(3).png)
 
-##Discussion Questions:
+### Discussion Questions:
 
-- What happens if the end of the string is not detected?
+What happens if the end of the string is not detected?
  - if the end of the string has not been recognised by the definition given by the label “terminating_character” when used in the function “processstring” with a CMPB operation, then the program will continue functioning. As the input string variable (“inpstr”) has been declared with a “fcc” command, and despite the fact that this operation doesn’t concatenate a terminating character, by default the string is delimited with the quotation marks and so the address of the final character of the input string is known. However if the end of the string is still not identified, by comparing the decimal value of the next char to be analysed with the range of values of valid characters it is ensured that once the end of the string is reached that the next function will begin, and if all functions have been performed then an “rts” operation is read.
-- What else can go wrong?
+
+What else can go wrong?
     -	Time taken for relatively long strings will start to increase noticeably due to the requirement of using branches instead of jump operations. However as the program is relatively small, and conditional jumps are required, branching operations are the most suitable operation to be used in this program.
     -	There is the possibility that the string entered exceeds the available memory to store its contents, in which case it would be truncated. Although this is not a serious concern as the program would become unfeasibly slow, it would result in the memory being overwritten by the character manipulations which would then result in the following tasks receiving a different string to the original.	Non-English characters entered that may translate to valid decimal values
- -	How do you select which function you want to perform?
+ 
+ How do you select which function you want to perform?
   -	The selection is made in the sub-routine “validchar” by commenting out the functions that are not wished to be tested at the time. An iterative way was previously looked at where the task numbers (shown at the top) where used to set their precedence and could all be run one after the other, however this did not allow for full control and concise version testing. As all functions remain defined and it is just the branching that is commented out, it does allow the use of them in other functions which becomes particularly useful in tasks 3 & 4
 
 ##Testing:
@@ -51,8 +56,7 @@ Exercise 1 should take a pre-defined string from the program and load the memory
 	-	Is the current char a space
 	Dec value 32
 
-##Diagram:
-![alt text](https://github.com/littlepetal/treasureForest/blob/main/Project_Docs/Exercise%201/Ex1.png)
+
 
 ## Exercise 3 Documentation 
 
@@ -67,6 +71,8 @@ Exercise 3 should take a string from the terminal emulator which is connected to
 -	Using a subroutine there is a delay of 1 second.
 -	Using a subroutine the program jumps to the transmit subroutine. The control register 2 is set to transmitting enabled. When the mask for RTDE empty is 1, the subroutine will run, not moving to the next character until this mask is met. The data in the address of x in moved to SCI1DRL register. This is compared to the carriage character value. If 0, return from the subroutine as this is the end of the string, only return when transmission is complete. Else store loop through the reserved memory until the carriage character.
 
+### Diagram 
+![alt text](https://github.com/littlepetal/treasureForest/blob/0bc68a495badff4f2c6611e881f95329f719049f/Project_Docs/Exercise%203/ex3_documnetation/diagram%20(1).png)
 
 ### Discussion Questions:
 What problems can you see arising from the use of polling when dealing with data input? 
@@ -133,6 +139,10 @@ Note detailed documentation for each of these steps can be found in each exercis
   -	Only utilise the scroll function. 
   -	Add in a feature where if the numerical string is simply the null character, i.e no numerical characters, the scrolling code is skipped and the led remains off. 
 - 	Return to the start of the loop
+
+### Diagram
+![alt text](https://github.com/littlepetal/treasureForest/blob/0bc68a495badff4f2c6611e881f95329f719049f/Project_Docs/Exercise%204/integration%20docs/ex4.png)
+
 
 ### Discussion Questions:
  
