@@ -27,10 +27,10 @@ ROMStart    EQU  $4000  ; absolute address to place my code/constant data
 Counter     DS.W 1
 FiboRes     DS.W 1
 
-str         fcc "string"
+inpstr         fcc "string"
             fcb $0d
 
-inpstr rmb  $300
+;inpstr rmb  $300
 
 
 ; code section
@@ -56,7 +56,7 @@ start:
             ;jsr RE
    
             ;Sub-routine for delaying the output
-            ldab #100
+            ldab #80
             jsr   delay
            
             ;Sub-routine for outputting the string 
@@ -115,7 +115,7 @@ delay
 out_loop     
              ldx #60000 ;1 cycle
 inner_loop 
-             ldy $4000
+             ;ldy $4000
              dbne x,inner_loop  ;3 cycles
              dbne b,out_loop    ;3 cycles
              rts 
