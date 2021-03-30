@@ -59,6 +59,44 @@ Inputting a string from the terminal
 - Check the capspace and fullspce have the flags set for their desired operation by loading in a string such as ". a" and step through untill the a character.
 
 
+## Exercise 2 Documentation 
+
+### Summary of Task:
+There are essentially two parts. First, take a string in memory and draw the numerical characters of the string on the seven segs. The string should contain at least 4 numerical characters. In the case that there are more than 4 numerical characters, the digits should scroll through the seven segs indefinitely. Second, make a function that displays digits at the seven segs corresponding to the state of the port H buttons and switches. 
+
+### Program Summary:
+
+The program is made up of functions which demonstrate each small part of exercise 2. 
+- staticFourDigits displays indefinitely 4 digits on the seven segs equivalent to the 4 codes loaded into accumulator B within the function. 
+- asciiToDigitOutput takes the string at digits_string and displays the digit equivalent of the first 4 characters on the seven segs indefinitely. 
+- scroll takes the string at digits_string and displays the digit equivalent of all the characters on the seven segs by scrolling through them indefinitely. 
+- choiceOfDigits configures the I/O ports such that when the last four DIP switches are on, ‘1’ will show at the seven seg corresponding to the port H button pressed.
+- There are other auxiliary functions which help the big functions.
+- To run each big function, we simply uncomment “JSR function” in the main loop
+
+### Discussion Questions:
+
+What do you do if the string includes characters that are not numbers?
+ - In this case, for exercise two, a zero will be displayed at the relative position of the non-numerical character. For exercise 4, we have modified the code such that non-numerical characters are ignored/skipped, and only the numerical characters in the string will be displayed; should there be less than four numbers, nothing will be displayed in the “undefined” seven segs.
+
+How fast is appropriate for the scrolling?
+ - First, we should note that the scrolling function “scroll” is an extension of the function “asciiToDigitOutput”. asciiToDigitOutput displays 4 digits “statically” by lighting up and turning off each seven seg, one by one, with their required digit; this fast on/off process of the seven segs repeats over and over again, giving the illusion of the 4 “static” digits. Each digit stays on for approx. 0.5ms as implemented by the “delay” function. The scroll function is essentially asciiToDigitOutput run in a loop, with each instance of asciiToDigitOutput run for a certain number of iterations before moving on to the next instance, with different 4 digits.
+ - The way that the scrolling function works is that it displays four digits “statically” as it does for asciiToDigitOutput, but the four digits displayed is modified at a constant rate. After each instance of 4 “static” digits, the pointer to the input string is incremented by one and displays the new characters at the offsets of 0, 1, 2 and 3, iteratively. The pointer is reset to point to the beginning of the string as soon as a carriage return is found at any of the 0, 1, 2 and 3 offsets. 
+ - The speed of the scrolling is mainly determined by the delay for each digit to be displayed statically and the number of times that each instance of 4 digits is displayed statically. As calculated from our delay function, the delay for each of our 4 static digits is approx. 0.5ms. This is encased within a loop which displays every instance of 4 digits statically 200 times (200 was an arbitrary number chosen for the iterations). So, we have the time between each scroll is 0.5ms*4*200 = 0.4 seconds. As the four instances of the delay function being run 200 times with each iteration of the scroll function are the instructions with the most significant iterations encountered in the scroll function, we ignore the other instructions and estimate that “scroll” runs at about half of a second per scroll, which looks appropriate. 
+
+### Testing:
+
+Task 1:
+ - Run the function staticFourDigits with the serial monitor and check that the four displayed digits on the seven seg matches the values hardcoded into port B in our function.
+Task 2:
+ - Set a value for the ascii_value variable and run getSevenSegCode in full chip simulation. Step through getSevenSegCode to check that the ascii value has been mapped to the correct value as shown in register B for the seven seg byte representation of the ascii value. In the case that the ascii represents a non-numerical value, it should be mapped to the seven seg equivalent of the digit 0.
+Task 3:
+ - Run choiceOfDigits function with the serial monitor with all last four of the DIP switches ON (So that all seven segs are off at first). Push each four of the port H buttons and check that the corresponding seven seg lights up with the digit 1 (left most button should turn on left most seven seg etc.).
+Task 4:
+ - Run the function asciiToDigitOutput and check that the digits shown on the seven seg are the digital equivalent of the first four characters of the string stored in the digits_string variable. The digital equivalences of the characters are as explained for task 2.
+Task 5:
+ - Run the function scroll and check that the digits displayed on the seven segs are the digital equivalents of the string stored in the digits_string variable, and should that exceed 4 digits, the digits should scroll across at a rate of about 1 shift to the right every half of a second. As soon as the last digit makes it to the seven segs, the scroll function should restart and scroll beginning with the first digit.
+
 
 ## Exercise 3 Documentation 
 
