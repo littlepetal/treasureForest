@@ -28,6 +28,7 @@ Counter     DS.W 1
 FiboRes     DS.W 1
 
 inpstr         fcc "string"
+            fcb  $0a
             fcb $0d
 
 ;inpstr rmb  $300

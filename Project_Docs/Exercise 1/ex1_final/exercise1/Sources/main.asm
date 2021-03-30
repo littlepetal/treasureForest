@@ -51,6 +51,7 @@ Charmanipulation:
             staa space_store    ;set these flags to 1 to capitalise the first letter of each word for ex 1.3 and 1.4
             staa fullstop_store ;
             jsr processstring   ;jump to subroutine which handles the string
+            bra mainLoop
             stop                ;end the program when the manipulation is done 
                     ;
             
