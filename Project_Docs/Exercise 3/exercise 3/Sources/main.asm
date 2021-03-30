@@ -48,7 +48,8 @@ _Startup:
 mainLoop:                      
             ;Set the baud rate at 9600
             movb #$00,SCI1BDH
-            movb #156,SCI1BDL  
+            movb #156,SCI1BDL
+            movb #%00001100,SCI1CR2       ;Enable transmitting bit and receiving   
             
 start:      
             ;Sub-routine for inputting and storing the string
@@ -68,7 +69,6 @@ start:
 
 
 RE
-            movb #%00000100,SCI1CR2 ;Enable receiving bit
             ldx #inpstr ;load the address of the reserved memory  
 getc  
             
@@ -81,19 +81,20 @@ getc
             inx 
             bra getc     ;Continue for remaining char
 return2
+            ldab #$0a    ;Store newline char in reserved memory
+            stab x
+            inx
             ldab #$0D    ;Store carrage char in reserved memory
             stab x
             rts           
             
-            
-
-
-
+           
+;transmit char
 TE
-            movb #%00001000,SCI1CR2 ;Enable transmitting bit
-            LDX   #str              ;load the address of the reserved memory  
+            LDX   #inpstr              ;load the address of the reserved memory  
 
 putc    
+
             brclr SCI1SR1,#mSCI1SR1_TDRE,* ;Only branch when TDRE bit is 1       
             movb x,SCI1DRL                 ;Move char at reserved memory address to SCI1 data reg
             ldab x
@@ -103,7 +104,7 @@ putc
             inx     
             bra putc                      ; Else go to next Character
 return
-            brclr SCI1SR1,#mSCI1SR1_TC,*  ;Only return when transmission complete
+            ;brclr SCI1SR1,#mSCI1SR1_TC,*  ;Only return when transmission complete
             rts 
             
 
