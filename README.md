@@ -1,4 +1,9 @@
 # Project 1
+## Authors
+- Fergus Charles
+- Snow Dodgson
+- Mitch Hewitt
+
 ## Exercise 1 Documentation 
 
 ### Summary of Task:
