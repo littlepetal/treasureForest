@@ -21,8 +21,9 @@ Exercise 1 should take a pre-defined string from the program and load the memory
     -	In keepprocessing, Char is checked to be valid once transferred to accumulator A, if the current char is less than decimal value 65, or greater than 122, as these the range of values for valid input characters the program will go to the nextchar. If the ASCII rangle is from 65-90 or 97-122 then the program branches to “validchar”
   -	Required function is then applied as decided in “validchar”
     -	allToUpper: checks if the char present is already capitalised (less than decimal 90) If it is greater than 90, 32 is subtracted from the value to get its lower case equivalent
-    -	allToLower: Checks if the char present is already lower case (greater than decimal 90) If it is less than 90, 32 is added to attain the lower case decimal value Capspace & fullspace. Checks for fullstop and or space flags are set. If both return true for fullspace or space true for capspace, the character will be put into “allToUpper” and the following characters all run through “allToLower”
-  -The nextchar section is used to check if the current character is a fullstop or a space using fullstopcheck & spacecheck, this then triggers a flag which is used by a the Capspace and fullspace
+    -	allToLower: Checks if the char present is already lower case (greater than decimal 90) If it is less than 90, 32 is added to attain the lower case decimal value.
+    -	Capspace & fullspace: Checks for fullstop and or space flags are set. If both return true for fullspace or space true for capspace, the character will be put into “allToUpper” and the following characters all run through “allToLower”
+- The nextchar section is used to check if the current character is a fullstop or a space using fullstopcheck & spacecheck, this then triggers a flag which is used by a the Capspace and fullspace function, after this x will increment and then move to the next char by going back to the processstring loop.
   
 ### Diagram:
 ![alt text](https://github.com/littlepetal/treasureForest/blob/0bc68a495badff4f2c6611e881f95329f719049f/Project_Docs/Exercise%201/exercise%201%20Documentation/ex1%20(3).png)
@@ -39,22 +40,18 @@ What else can go wrong?
  How do you select which function you want to perform?
   -	The selection is made in the sub-routine “validchar” by commenting out the functions that are not wished to be tested at the time. An iterative way was previously looked at where the task numbers (shown at the top) where used to set their precedence and could all be run one after the other, however this did not allow for full control and concise version testing. As all functions remain defined and it is just the branching that is commented out, it does allow the use of them in other functions which becomes particularly useful in tasks 3 & 4
 
-##Testing:
+### Testing:
 
-  -	Inputting a string from the terminal 
-    -	Check that the sub-routine is being called and run by setting a breakpoint in the RE subroutine.
-    -	Check that register X is loading the start of the memory’s location
-  -	Is the string being loaded char by char
-    -	Use pull byte from stack to ensure
-    -	Go through debug memory address values
-    -	Single step to see if registers A & B change values at appropriate steps
-    -	Follow up to ensure valid chars
-  -	Is the current char valid?
+Inputting a string from the terminal 
+- Check that the sub-routine is being called and run by setting a breakpoint in the processstring subroutine.
+- Check that register X is loading the start of the memory’s location, e.g load a string of char a and check it's ascii value is loading into b
+- check that the terminating character is causing the program to end the subroutine by placing a breakpoint at terminate
+- Is the current char valid? check that the program goes to the nextchar brack or the keepprocessing branch
     -	Is the current char upper case(dec value >65 and <90)
     -	Is the current char lower case(dec >97 and <120) 
   -	Is the current char a full stop
-	-	Is the current char a space
-	Dec value 32
+- Check that the functions lower and upper subtract and add #32 to the registers by loading a string of one character and stepping through.
+- Check the capspace and fullspce have the flags set for their desired operation by loading in a string such as ". a" and step through untill the a character.
 
 
 
